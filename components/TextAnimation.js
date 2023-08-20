@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from "react-native"
 import React, { useEffect, useState, useRef } from 'react';
+import * as Animatable from 'react-native-animatable';
 
 const TouchBox = ({ x, y }) => {
     const [text, setText] = useState('');
@@ -11,6 +12,15 @@ const TouchBox = ({ x, y }) => {
             textInputRef.current.focus();
         }
     }, [visible]);
+
+    const slideInRight = {
+        from: {
+            translateX: 0,
+        },
+        to: {
+            translateX: 250,
+        },
+    };
 
     return (
         <View style={{ position: 'absolute', left: x, top: y }}>
@@ -26,7 +36,12 @@ const TouchBox = ({ x, y }) => {
                     />
                     :
                     <View style={styles.textBox}>
-                        <Text>{text}</Text>
+                        <Animatable.Text
+                            animation={slideInRight}
+                            iterationCount="infinite"
+                            duration={7000}
+                            easing="linear"
+                        >{text}</Animatable.Text>
                     </View>
             }
         </View>
@@ -88,8 +103,16 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         borderRadius: 10,
     },
-    headingView: { flex: 1, flexDirection: "row", justifyContent: "center", paddingTop: 10 },
-    heading: { fontSize: 20, fontWeight: "bold" },
+    headingView: {
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "center",
+        paddingTop: 10
+    },
+    heading: {
+        fontSize: 20,
+        fontWeight: "bold"
+    },
     textBox: {
         color: 'black',
         fontSize: 12,
