@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import TextAnimation from './components/TextAnimation';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -24,7 +25,7 @@ export default function App() {
   const [path, setPath] = useState('');
   const [color, setColor] = useState('black');
   const [paths, setPaths] = useState([]);
-  
+
   const handleTouchStart = (event) => {
     const { locationX, locationY } = event.nativeEvent;
     let x = locationX;
@@ -40,89 +41,91 @@ export default function App() {
     const lightness = 75 + Math.floor(Math.random() * 25);
     setColor(`hsl(${hue}, 100%, ${lightness}%)`);
   };
-  
 
-const handleTouchMove = (event) => {
-const { locationX, locationY } = event.nativeEvent;
-let x = locationX;
-let y = locationY;
-if (locationX <= screenWidth * 0.1) {
-x = -screenWidth;
-} else if (locationX >= screenWidth * 0.9) {
-x = screenWidth * 2;
-}
-setPoints((points) => [...points, { x, y }]);
-let pathString = '';
-for (let i = 0; i <= 1; i += 0.01) {
-const point = bSpline(points, Math.min(100, points.length - 1), i);
-if (i === 0) {
-pathString += `M ${point.x} ${point.y}`;
-} else {
-pathString += ` L ${point.x} ${point.y}`;
-}
-}
-setPath(pathString);
-};
 
-const handleTouchEnd = () => {
-if (
-(points[0].x <= screenWidth * 0.1 ||
-points[0].x >= screenWidth * 0.9) &&
-(points[points.length - 1].x <= screenWidth * 0.1 ||
-points[points.length - 1].x >= screenWidth * 0.9)
-) {
-setPaths((paths) => [...paths, { path: path, color: color }]);
-}
-setPoints([]);
-setPath('');
-setColor('black');
-};
+  const handleTouchMove = (event) => {
+    const { locationX, locationY } = event.nativeEvent;
+    let x = locationX;
+    let y = locationY;
+    if (locationX <= screenWidth * 0.1) {
+      x = -screenWidth;
+    } else if (locationX >= screenWidth * 0.9) {
+      x = screenWidth * 2;
+    }
+    setPoints((points) => [...points, { x, y }]);
+    let pathString = '';
+    for (let i = 0; i <= 1; i += 0.01) {
+      const point = bSpline(points, Math.min(100, points.length - 1), i);
+      if (i === 0) {
+        pathString += `M ${point.x} ${point.y}`;
+      } else {
+        pathString += ` L ${point.x} ${point.y}`;
+      }
+    }
+    setPath(pathString);
+  };
 
-const handleTap = () => {
-if (points.length === 0 && paths.length > 0) {
-const hue = Math.floor(Math.random() * 360);
-const lightness = 75 + Math.floor(Math.random() * 25);
-const newColor = `hsl(${hue},100%,${lightness}%)`;
-setPaths((paths) =>
-paths.map((pathObj, index) =>
-index === paths.length - 1 ? { ...pathObj, color: newColor } : pathObj
-)
-);
-}
-};
+  const handleTouchEnd = () => {
+    if (
+      (points[0].x <= screenWidth * 0.1 ||
+        points[0].x >= screenWidth * 0.9) &&
+      (points[points.length - 1].x <= screenWidth * 0.1 ||
+        points[points.length - 1].x >= screenWidth * 0.9)
+    ) {
+      setPaths((paths) => [...paths, { path: path, color: color }]);
+    }
+    setPoints([]);
+    setPath('');
+    setColor('black');
+  };
 
-return (
-<View
-style={styles.container}
-onTouchStart={handleTouchStart}
-onTouchMove={handleTouchMove}
-onTouchEnd={handleTouchEnd}
-onStartShouldSetResponder={() => true}
-onResponderRelease={handleTap}
->
-<Svg style={styles.svg}>
-{paths.map((pathObj, index) => (
-<Path
-key={index}
-d={pathObj.path}
-stroke={pathObj.color}
-strokeWidth={30}
-fill="none"
-/>
-))}
-<Path d={path} stroke={color} strokeWidth={30} fill="none" />
-</Svg>
+  const handleTap = () => {
+    if (points.length === 0 && paths.length > 0) {
+      const hue = Math.floor(Math.random() * 360);
+      const lightness = 75 + Math.floor(Math.random() * 25);
+      const newColor = `hsl(${hue},100%,${lightness}%)`;
+      setPaths((paths) =>
+        paths.map((pathObj, index) =>
+          index === paths.length - 1 ? { ...pathObj, color: newColor } : pathObj
+        )
+      );
+    }
+  };
 
-</View>
-);
+  return (
+    // <View
+    //   style={styles.container}
+    //   onTouchStart={handleTouchStart}
+    //   onTouchMove={handleTouchMove}
+    //   onTouchEnd={handleTouchEnd}
+    //   onStartShouldSetResponder={() => true}
+    //   onResponderRelease={handleTap}
+    // >
+    //   <Svg style={styles.svg}>
+    //     {paths.map((pathObj, index) => (
+    //       <Path
+    //         key={index}
+    //         d={pathObj.path}
+    //         stroke={pathObj.color}
+    //         strokeWidth={30}
+    //         fill="none"
+    //       />
+    //     ))}
+    //     <Path d={path} stroke={color} strokeWidth={30} fill="none" />
+    //   </Svg>
+    // </View>
+
+
+    <TextAnimation />
+  );
 }
 
 const styles = StyleSheet.create({
-container: {
-flex: 1,
-backgroundColor: '#fff',
-},
-svg: {
-flex: 1,
-},
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  svg: {
+    flex: 1,
+  },
 });
