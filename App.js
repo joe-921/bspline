@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import TextAnimation from './components/TextAnimation';
+import DrawAndTextField from './components/DrawAndTextField';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -65,18 +66,26 @@ export default function App() {
     setPath(pathString);
   };
 
+  // const handleTouchEnd = () => {
+  //   if (
+  //     (points[0].x <= screenWidth * 0.1 ||
+  //       points[0].x >= screenWidth * 0.9) &&
+  //     (points[points.length - 1].x <= screenWidth * 0.1 ||
+  //       points[points.length - 1].x >= screenWidth * 0.9)
+  //   ) {
+  //     setPaths((paths) => [...paths, { path: path, color: color }]);
+  //   }
+  //   setPoints([]);
+  //   setPath('');
+  //   setColor('black');
+  // };
+
   const handleTouchEnd = () => {
-    if (
-      (points[0].x <= screenWidth * 0.1 ||
-        points[0].x >= screenWidth * 0.9) &&
-      (points[points.length - 1].x <= screenWidth * 0.1 ||
-        points[points.length - 1].x >= screenWidth * 0.9)
-    ) {
-      setPaths((paths) => [...paths, { path: path, color: color }]);
+    if (points.length > 0) {
+      setPaths((paths) => [...paths, { path, color }]);
+      setPoints([]);
+      setPath('');
     }
-    setPoints([]);
-    setPath('');
-    setColor('black');
   };
 
   const handleTap = () => {
@@ -116,7 +125,8 @@ export default function App() {
     // </View>
 
 
-    <TextAnimation />
+    // <TextAnimation />
+    <DrawAndTextField />
   );
 }
 
