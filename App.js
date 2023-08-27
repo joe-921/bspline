@@ -7,6 +7,7 @@ import {
   useFonts,
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
+import NewAnimation from './components/NewAnimation';
 
 export default function App() {
   let [fontsLoaded] = useFonts({
@@ -29,6 +30,7 @@ export default function App() {
   }, []);
 
   return (
-    <DrawTextAnimation />
+    // <DrawTextAnimation />
+    <NewAnimation />
   );
 }
