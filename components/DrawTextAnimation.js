@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Dimensions, TextInput, Animated, Easing, View, Text } from 'react-native';
+import { StyleSheet, Dimensions, TextInput, Animated, Easing, View, Text, Image } from 'react-native';
 import Svg, { G, Path, Text as SVGText, TextPath } from 'react-native-svg';
+import {
+  useFonts,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
+import chroma from 'chroma-js';
+import { textToFlagEmoji } from './emoji'; // Import the textToFlagEmoji function from the emoji.js file
+import { Keyboard } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -28,14 +35,19 @@ const AnimatedTextPath = (props) => {
         x.addListener(({ value }) => {
             setState(value)
         })
+
+        // Set the duration of the animation to a fixed value
+        const duration = 10000;
+
         Animated.loop(
             Animated.timing(x, {
-                toValue: 90,
+                toValue: 100,
                 duration: 10000,
                 delay: 100,
-                easing: Easing.linear,
-                useNativeDriver: false,
+                easing: Easing.inOut(Easing.linear),
+                useNativeDriver: true,
             })).start()
+        
     }, [])
 
     return (
@@ -45,16 +57,72 @@ const AnimatedTextPath = (props) => {
     );
 };
 
+const AnimatedImage = (props) => {
+    const x = new Animated.Value(0)
+
+    const [state, setState] = useState(0)
+
+    useEffect(() => {
+        x.addListener(({ value }) => {
+            setState(value)
+        })
+
+        // Set the duration of the animation to a fixed value
+        const duration = 10000;
+
+        Animated.loop(
+            Animated.timing(x, {
+                toValue: 100,
+                duration: 10000,
+                delay: 2000,
+                easing: Easing.inOut(Easing.linear),
+                useNativeDriver: true,
+            })).start()
+        
+        
+    }, [])
+
+    // Calculate the position of the avatar relative to the text
+    const t = state / 100;
+    const point = bSpline(props.points, Math.min(100, props.points.length - 1), t);
+
+    return (
+        <Image
+            source={require('./user/avatar1.jpg')}
+            style={{
+                position: 'absolute',
+                left: point.x - 20,
+                top: point.y - 20,
+                width: 40,
+                height: 40,
+                borderRadius: 25,
+            }}
+        />
+    );
+};
+
+
 
 export default function DrawTextAnimation() {
     const [points, setPoints] = useState([]);
     const [path, setPath] = useState('');
     const [color, setColor] = useState('black');
+    const [textColor, setTextColor] = useState('black');
     const [paths, setPaths] = useState([]);
     const [tempText, setTempText] = useState('');
     const [typeable, setTypeable] = useState(false);
+    const [strokeStart, setStrokeStart] = useState(null);
+
+    let [fontsLoaded] = useFonts({
+        'SpaceGrotesk-Bold': SpaceGrotesk_700Bold,
+    });
+
+    if (!fontsLoaded) {
+        return null;
+    }
 
     const handleTouchStart = (event) => {
+        Keyboard.dismiss();
         setTempText('')
         const { locationX, locationY } = event.nativeEvent;
         let x = locationX;
@@ -66,11 +134,29 @@ export default function DrawTextAnimation() {
         } else {
             setPoints([{ x, y }]);
         }
-        const hue = Math.floor(Math.random() * 360);
-        const lightness = 75 + Math.floor(Math.random() * 25);
-        setColor(`hsl(${hue}, 100%, ${lightness}%)`);
-    };
 
+        // Define the list of colors
+        const colors = ['#4b917d', '#f037a5', '#cdf564', '#4000F5', '#9cF0E1', '#FCDD27', '#3433E2', '#FF1D00'];
+
+        // Randomly select a color from the list
+        const colorIndex = Math.floor(Math.random() * colors.length);
+        const color = colors[colorIndex];
+
+        setColor(color);
+
+        // Define the list of text colors
+        const textColors = ['#FFFFFF', '#DDDDDD', ...colors.filter(c => c !== color)];
+
+        // Randomly select a text color from the list
+        const textColorIndex = Math.floor(Math.random() * textColors.length);
+        const textColor = textColors[textColorIndex];
+
+        // Set the text color
+        setTextColor(textColor);
+
+        // Set the stroke start point
+        setStrokeStart({ x: locationX, y: locationY });
+    };
 
     const handleTouchMove = (event) => {
         const { locationX, locationY } = event.nativeEvent;
@@ -95,83 +181,84 @@ export default function DrawTextAnimation() {
     };
 
     const handleTouchEnd = () => {
-        setTypeable(true);
-        if (points.length > 0) {
-            setPaths((paths) => [...paths, { id: Math.random().toString(36).substring(7), label: '', path, color }]);
-            setPoints([]);
-            setPath('');
+      if (points.length > 0) {
+          // Check if the stroke starts and ends near the edge of the screen
+          const startsNearEdge = points[0].x <= screenWidth * 0.1 || points[0].x >= screenWidth * 0.9;
+          const endsNearEdge = points[points.length - 1].x <= screenWidth * 0.1 || points[points.length - 1].x >= screenWidth * 0.9;
+          // Only add the path and show the keyboard if the stroke starts and ends near the edge
+          if (startsNearEdge && endsNearEdge) {
+            setTypeable(true);
+            setPaths((paths) => [...paths.map(path => ({ ...path })), { id: Math.random().toString(36).substring(7), label: '', path, color, textColor, points }]);
         }
-    };
+        setPoints([]);
+        setPath('');
+    }
+  };
 
-    const handleTap = () => {
-        if (points.length === 0 && paths.length > 0) {
-            const hue = Math.floor(Math.random() * 360);
-            const lightness = 75 + Math.floor(Math.random() * 25);
-            const newColor = `hsl(${hue},100%,${lightness}%)`;
-            setPaths((paths) =>
-                paths.map((pathObj, index) =>
-                    index === paths.length - 1 ? { ...pathObj, color: newColor } : pathObj
-                )
-            );
-        }
-    };
+  return (
+      <Animated.View
+          style={styles.container}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onStartShouldSetResponder={() => true}
+      >
+          <View style={styles.headingContainer}>
+              <Text style={styles.heading}>Draw on Screen❤️</Text>
+          </View>
 
-    return (
-        <Animated.View
-            style={styles.container}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onStartShouldSetResponder={() => true}
-            onResponderRelease={handleTap}
-        >
-            <View style={styles.headingContainer}>
-                <Text style={styles.heading}>Draw on Screen</Text>
-            </View>
+          {
+              typeable && <TextInput
+                  style={{ height: 40, borderColor: 'gray', borderWidth: 1, display: "none" }}
+                  autoFocus={true}
+                  onChangeText={text => {
+                      const emojiText = textToFlagEmoji(text); // Use the textToFlagEmoji function to convert the text to emoji
+                      setTempText(emojiText)
+                      const lastPath = paths[paths.length - 1];
+                      const lastPathId = lastPath.id;
+                      const lastPathColor = lastPath.color;
+                      const lastPathPath = lastPath.path;
+                      const newPaths = paths.map(path => path.id === lastPathId ? { ...path, label: emojiText } : { ...path });
+                      setPaths(newPaths);
+                  }}
+                  onEndEditing={() => {
+                      setTypeable(false)
+                      setTempText('')
+                  }}
+                  value={tempText}
+              />
+          }
 
-            {
-                typeable && <TextInput
-                    style={{ height: 40, borderColor: 'gray', borderWidth: 1, display: "none" }}
-                    autoFocus={true}
-                    onChangeText={text => {
-                        setTempText(text)
-                        const lastPath = paths[paths.length - 1];
-                        const lastPathId = lastPath.id;
-                        const lastPathColor = lastPath.color;
-                        const lastPathPath = lastPath.path;
-                        const newPaths = paths.filter((path) => path.id !== lastPathId);
-                        setPaths([...newPaths, { id: lastPathId, label: text, path: lastPathPath, color: lastPathColor }]);
-                    }}
-                    onEndEditing={() => {
-                        setTypeable(false)
-                        setTempText('')
-                    }}
-                    value={tempText}
-                />
-            }
-
-            <Svg style={styles.svg}>
-                {paths.map((pathObj, index) => (
-                    <G
-                        key={index}
-                    >
-                        <Path
-                            id={`textPath${index}`}
-                            d={pathObj.path}
-                            stroke={pathObj.color}
-                            strokeWidth={30}
-                            fill="none"
-                        />
-                        <SVGText
-                        >
-                            <AnimatedTextPath pathObj={pathObj} index={index} />
-                        </SVGText>
-                    </G>
-                ))}
-                <Path d={path} stroke={color} strokeWidth={30} fill="none" />
-            </Svg>
-        </Animated.View>
-    );
+          <Svg style={styles.svg}>
+              {fontsLoaded && paths.map((pathObj, index) => (
+                  <G
+                      key={index}
+                  >
+                      <Path
+                          id={`textPath${index}`}
+                          d={pathObj.path}
+                          stroke={pathObj.color}
+                          strokeWidth={50}
+                          fill="none"
+                      />
+                      <SVGText
+                          fill={pathObj.textColor}
+                          fontFamily='SpaceGrotesk-Bold'
+                          fontSize={32}
+                          fontWeight='700'
+                          alignmentBaseline='central'
+                      >
+                          <AnimatedTextPath pathObj={pathObj} index={index} />
+                      </SVGText>
+                  </G>
+              ))}
+              <Path d={path} stroke={color} strokeWidth={50} fill="none" />
+          </Svg>
+          {fontsLoaded && paths.map((pathObj, index) => (
+              <AnimatedImage key={index} points={pathObj.points} />
+          ))}
+      </Animated.View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -191,8 +278,9 @@ const styles = StyleSheet.create({
         zIndex: 0,
     },
     heading: {
-        fontSize: 30,
-        fontWeight: 'bold',
+        fontSize: 24,
+        fontWeight: '700',
+        fontFamily: 'SpaceGrotesk-Bold',
         color: 'black',
     },
 });
