@@ -1,7 +1,7 @@
 // App.js
 
 import React, { useEffect } from 'react';
-import DrawTextAnimation from './components/DrawTextAnimation';
+import DrawTextAnimation from './components/DrawTextAnimation2';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
