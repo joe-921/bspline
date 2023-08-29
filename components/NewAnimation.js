@@ -62,7 +62,6 @@ export default function NewAnimation() {
     const [tempText, setTempText] = useState('');
     const [typeable, setTypeable] = useState(false);
     const [textColor, setTextColor] = useState('black');
-    const [strokeStart, setStrokeStart] = useState(null);
 
     let [fontsLoaded] = useFonts({
         'SpaceGrotesk-Bold': SpaceGrotesk_700Bold,
@@ -73,8 +72,6 @@ export default function NewAnimation() {
     }
 
     const handleTouchStart = (event) => {
-        // const { locationX, locationY } = event.nativeEvent;
-        // console.log(locationX, " | ", locationY)
         Keyboard.dismiss();
         setTempText('')
         const { locationX, locationY } = event.nativeEvent;
@@ -103,12 +100,9 @@ export default function NewAnimation() {
         // Randomly select a text color from the list
         const textColorIndex = Math.floor(Math.random() * textColors.length);
         const textColorr = textColors[textColorIndex];
-
+        console.log(textColorr)
         // Set the text color
         setTextColor(textColorr);
-
-        // Set the stroke start point
-        // setStrokeStart({ x: locationX, y: locationY });
     };
 
 
@@ -149,19 +143,6 @@ export default function NewAnimation() {
         }
     };
 
-    const handleTap = () => {
-        if (points.length === 0 && paths.length > 0) {
-            const hue = Math.floor(Math.random() * 360);
-            const lightness = 75 + Math.floor(Math.random() * 25);
-            const newColor = `hsl(${hue},100%,${lightness}%)`;
-            setPaths((paths) =>
-                paths.map((pathObj, index) =>
-                    index === paths.length - 1 ? { ...pathObj, color: newColor } : pathObj
-                )
-            );
-        }
-    };
-
     return (
         <Animated.View
             style={styles.container}
@@ -169,7 +150,6 @@ export default function NewAnimation() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onStartShouldSetResponder={() => true}
-            // onResponderRelease={handleTap}
         >
             <View style={styles.headingContainer}>
                 <Text style={styles.heading}>Draw on Screen❤️</Text>
@@ -186,7 +166,7 @@ export default function NewAnimation() {
                         const lastPathColor = lastPath.color;
                         const lastPathPath = lastPath.path;
                         const newPaths = paths.filter((path) => path.id !== lastPathId);
-                        setPaths([...newPaths, { id: lastPathId, label: text, path: lastPathPath, color: lastPathColor }]);
+                        setPaths([...newPaths, { id: lastPathId, label: text, path: lastPathPath, color: lastPathColor, textColor }]);
                     }}
                     onEndEditing={() => {
                         setTypeable(false)

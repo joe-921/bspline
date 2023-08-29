@@ -31,6 +31,6 @@ export default function App() {
 
   return (
     // <DrawTextAnimation />
-    <NewAnimation />
+    <NewAnimation /> // This is latest code.
   );
 }
