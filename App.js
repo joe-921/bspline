@@ -1,12 +1,13 @@
 // App.js
 
 import React, { useEffect } from 'react';
-import DrawTextAnimation from './components/DrawTextAnimation';
+// import DrawTextAnimation from './components/DrawTextAnimation';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
+import NewAnimation from './components/NewAnimation';
 
 export default function App() {
   let [fontsLoaded] = useFonts({
@@ -29,6 +30,7 @@ export default function App() {
   }, []);
 
   return (
-    <DrawTextAnimation />
+    // <DrawTextAnimation />
+    <NewAnimation /> // This is latest code.
   );
 }
