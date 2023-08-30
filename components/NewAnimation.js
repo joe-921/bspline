@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Dimensions, TextInput, Animated, Easing, View, Text, Keyboard } from 'react-native';
-import Svg, { G, Path, Text as SVGText, TextPath } from 'react-native-svg';
+import Svg, { G, Path, Text as SVGText, TextPath, SvgUri, Image } from 'react-native-svg';
 import {
     useFonts,
     SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
+import { textToFlagEmoji } from './emoji';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -25,8 +26,7 @@ function bSpline(points, degree, t) {
 
 const AnimatedTextPath = (props) => {
     const x = new Animated.Value(2)
-
-    const [state, setState] = useState(0)
+    const [state, setState] = useState(2)
 
     useEffect(() => {
         x.addListener(({ value }) => {
@@ -41,18 +41,28 @@ const AnimatedTextPath = (props) => {
                 easing: Easing.linear,
                 useNativeDriver: false,
             })).start()
-
-
-
     }, [])
 
+    // Calculate the position of the avatar relative to the text
+    const point = bSpline(props.pathObj?.points, Math.min(100, props.pathObj?.points.length - 1), state / 100);
+    // calculate the position of the text
+    const textWidth = props.pathObj?.label.length * 14;
+    const textHeight = 40;
     return (
-        <TextPath href={`#textPath${props.index}`} startOffset={`${state}%`}>
-            {props.pathObj?.label}
-        </TextPath>
+        <View style={{ position: 'relative' }}>
+            <TextPath href={`#textPath${props.index}`} startOffset={`${state}%`}>
+                {props.pathObj?.label}
+            </TextPath>
+            <Image
+                href={require('./user/avatar1.jpg')}
+                x={point.x + 10}
+                y={point.y - textHeight}
+                width={40}
+                height={40}
+            />
+        </View>
     );
 };
-
 
 export default function NewAnimation() {
     const [points, setPoints] = useState([]);
@@ -100,7 +110,6 @@ export default function NewAnimation() {
         // Randomly select a text color from the list
         const textColorIndex = Math.floor(Math.random() * textColors.length);
         const textColorr = textColors[textColorIndex];
-        console.log(textColorr)
         // Set the text color
         setTextColor(textColorr);
     };
@@ -160,13 +169,14 @@ export default function NewAnimation() {
                     style={{ height: 40, borderColor: 'gray', borderWidth: 1, display: "none" }}
                     autoFocus={true}
                     onChangeText={text => {
+                        const emojiText = textToFlagEmoji(text);
                         setTempText(text)
                         const lastPath = paths[paths.length - 1];
                         const lastPathId = lastPath.id;
                         const lastPathColor = lastPath.color;
                         const lastPathPath = lastPath.path;
-                        const newPaths = paths.filter((path) => path.id !== lastPathId);
-                        setPaths([...newPaths, { id: lastPathId, label: text, path: lastPathPath, color: lastPathColor, textColor }]);
+                        const newPaths = paths.map(path => path.id === lastPathId ? { ...path, label: emojiText } : { ...path });
+                        setPaths(newPaths);
                     }}
                     onEndEditing={() => {
                         setTypeable(false)
@@ -196,18 +206,26 @@ export default function NewAnimation() {
                                 fontWeight='700'
                                 alignmentBaseline='central'
                             >
-
+                                {/* <TextPath href={`#textPath${index}`} startOffset="10%">
+                                    {pathObj?.label}
+                                </TextPath>
+                                <Image
+                                    href={require('./user/avatar1.jpg')}
+                                    x={pathObj?.points[pathObj?.points.length - 1].x + 10}
+                                    y={pathObj?.points[pathObj?.points.length - 1].y - 20}
+                                    width={40}
+                                    height={40}
+                                /> */}
                                 {
                                     (index + 1 === paths.length && tempText !== "") ?
-                                        <TextPath href={`#textPath${index}`}>
-                                            {pathObj?.label}
-                                        </TextPath>
+                                        <View style={{ position: 'relative' }}>
+                                            <TextPath href={`#textPath${index}`} startOffset="2%">
+                                                {pathObj?.label}
+                                            </TextPath>
+                                        </View>
                                         :
                                         <AnimatedTextPath pathObj={pathObj} index={index} />
                                 }
-
-
-
                             </SVGText>
                         </G>
                     )
