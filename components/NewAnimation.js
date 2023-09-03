@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Dimensions, TextInput, Animated, Easing, View, Text, Keyboard } from 'react-native';
-import Svg, { G, Path, Text as SVGText, TextPath, SvgUri, Image } from 'react-native-svg';
+import Svg, { G, Path, Text as SVGText, TextPath, Image, TSpan, SvgUri } from 'react-native-svg';
 import {
     useFonts,
     SpaceGrotesk_700Bold,
@@ -47,19 +47,19 @@ const AnimatedTextPath = (props) => {
     const point = bSpline(props.pathObj?.points, Math.min(100, props.pathObj?.points.length - 1), state / 100);
     // calculate the position of the text
     const textWidth = props.pathObj?.label.length * 14;
-    const textHeight = 40;
+    const textHeight = 35;
     return (
-        <View style={{ position: 'relative' }}>
+        <View style={{ flexDirection: 'row' }}>
             <TextPath href={`#textPath${props.index}`} startOffset={`${state}%`}>
                 {props.pathObj?.label}
+                <Image
+                    href={require('./user/avatar1.png')}
+                    x={point.x + textWidth}
+                    y={point.y - textHeight}
+                    width={40}
+                    height={40}
+                />
             </TextPath>
-            <Image
-                href={require('./user/avatar1.jpg')}
-                x={point.x + 10}
-                y={point.y - textHeight}
-                width={40}
-                height={40}
-            />
         </View>
     );
 };
